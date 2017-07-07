@@ -149,4 +149,8 @@ event_declare_many( array(
 
 	# Authentication Events
 	'EVENT_AUTH_USER_FLAGS' => EVENT_TYPE_FIRST,
+
+	# Email events
+	'EVENT_EMAIL_HTML_CONTENT' => EVENT_TYPE_CHAIN,
+	'EVENT_EMAIL_FORMAT_BODY' => EVENT_TYPE_CHAIN,
 ) );

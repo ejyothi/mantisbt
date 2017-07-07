@@ -1300,7 +1300,7 @@ function email_send( EmailData $p_email_data ) {
 			break;
 	}
 
-	$t_mail->IsHTML( false );              # set email format to plain text
+	$t_mail->IsHTML( event_signal('EVENT_EMAIL_HTML_CONTENT') );             # default is plain text; allowd plugind to modify the content
 	$t_mail->WordWrap = 80;              # set word wrap to 80 characters
 	$t_mail->CharSet = $t_email_data->metadata['charset'];
 	$t_mail->Host = config_get( 'smtp_host' );
@@ -1592,17 +1592,20 @@ function email_bug_info_to_one_user( array $p_visible_bug_data, $p_message_id, $
 	$t_subject = email_build_subject( $p_visible_bug_data['email_bug'] );
 
 	# build message
-	$t_message = lang_get_defaulted( $p_message_id, null );
+	if($t_formatted_message = event_signal( 'EVENT_EMAIL_FORMAT_BODY', array($p_visible_bug_data))) {
+		$t_message .= $t_formatted_message;
+	} else {
+		$t_message = lang_get_defaulted( $p_message_id, null );
 
-	if( is_array( $p_header_optional_params ) ) {
-		$t_message = vsprintf( $t_message, $p_header_optional_params );
+		if( is_array( $p_header_optional_params ) ) {
+			$t_message = vsprintf( $t_message, $p_header_optional_params );
+		}
+
+		if( ( $t_message !== null ) && ( !is_blank( $t_message ) ) ) {
+			$t_message .= " \n";
+		}
+		$t_message .= email_format_bug_message( $p_visible_bug_data );
 	}
-
-	if( ( $t_message !== null ) && ( !is_blank( $t_message ) ) ) {
-		$t_message .= " \n";
-	}
-
-	$t_message .= email_format_bug_message( $p_visible_bug_data );
 
 	# build headers
 	$t_bug_id = $p_visible_bug_data['email_bug'];
